@@ -1,0 +1,15 @@
+Port 22
+Protocol 2
+
+PermitRootLogin no
+PasswordAuthentication no
+PermitEmptyPasswords no
+MaxAuthTries 3
+LoginGraceTime 30
+X11Forwarding no
+UsePAM yes
+AllowGroups sshusers
+
+Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com
+MACs hmac-sha2-512,hmac-sha2-256
+KexAlgorithms curve25519-sha256,diffie-hellman-group16-sha512

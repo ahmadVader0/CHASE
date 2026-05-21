@@ -1,0 +1,14 @@
+Port 22
+Protocol 2
+HostKey /etc/ssh/ssh_host_rsa_key
+
+PermitRootLogin yes
+PasswordAuthentication yes
+PermitEmptyPasswords yes
+MaxAuthTries 10
+LoginGraceTime 120
+X11Forwarding yes
+UsePAM yes
+
+Ciphers aes128-cbc,aes256-cbc,chacha20-poly1305@openssh.com
+MACs hmac-md5,hmac-sha1,hmac-sha2-256

@@ -1,0 +1,18 @@
+# =============================================================================
+#  config/suppressions.list — Silence known-acceptable findings
+#
+#  One finding title substring per line.
+#  Lines starting with # are comments. Blank lines are ignored.
+#
+#  How to use:
+#    1. Run CHASE and review the JSON report.
+#    2. Find a finding you have acknowledged/accepted.
+#    3. Copy a unique substring of its "title" field here.
+#    4. CHASE will skip that finding on future scans.
+#
+#  Example suppressions (uncomment to activate):
+# =============================================================================
+
+# CRYPTO-openssl-not-available
+# IAM service-account-interactive-shell-backup
+# Filesystem world-writable file: /opt/app/logs

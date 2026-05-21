@@ -1,0 +1,17 @@
+# Runtime/Output logs and reports
+*.log
+*.html
+*.json
+*.tsv
+.chase_lock
+chase_findings.*
+
+# Editor and OS temporary files
+.DS_Store
+Thumbs.db
+*~
+*.swp
+*.swo
+
+# Test caches/outputs
+.bats-*.tmp
