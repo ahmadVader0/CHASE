@@ -465,7 +465,7 @@ run_remediation_wizard() {
     local skipped=0
 
     # Read the findings file line by line
-    while IFS=$'\t' read -r severity domain title remediation benchmark; do
+    while IFS=$'\t' read -u 3 -r severity domain title remediation benchmark; do
         if [[ -z "$remediation" || "$remediation" == "N/A" ]]; then
             continue
         fi
@@ -524,7 +524,7 @@ run_remediation_wizard() {
             fi
         done
         printf "\n"
-    done < "$TMP_FINDINGS_FILE"
+    done 3< "$TMP_FINDINGS_FILE"
 
     printf "  ${CHARCOAL}────────────────────────────────────────────────────────────────────────${RESET}\n"
     printf "  ${BOLD}Remediation Wizard Completed!${RESET}\n"
