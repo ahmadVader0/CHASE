@@ -74,28 +74,29 @@ _draw_logo() {
     printf "  ${CRIMSON}║${RESET}  ${_C1}╚██████╗${RESET}██║  ██║${_C2}██║  ██║${RESET}${_C3}███████║${RESET}${_C4}███████╗${RESET}                                ${CRIMSON}║${RESET}\n"
     printf "  ${CRIMSON}║${RESET}   ${_C1}╚═════╝${RESET}╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚══════╝                                ${CRIMSON}║${RESET}\n"
     printf "  ${CRIMSON}║${RESET}                                                                          ${CRIMSON}║${RESET}\n"
-    printf "  ${CRIMSON}║${RESET}  ${BOLD}${WHITE}CHASE${RESET} — Configuration & Host Audit Security Evaluator v${CHASE_VERSION}          ${CRIMSON}║${RESET}\n"
+    
+    local banner_text="  CHASE — Configuration & Host Audit Security Evaluator v${CHASE_VERSION}"
+    printf "  ${CRIMSON}║${RESET}%-74s${CRIMSON}║${RESET}\n" "$banner_text"
     
     local os_str="${CHASE_OS_NAME:-Linux} ${CHASE_OS_VERSION:-}"
-    local sys_info
-    sys_info="Host: $(hostname) | OS: $os_str | Kernel: $(uname -r)"
-    printf "  ${CRIMSON}║${RESET}  ${CHARCOAL}%-70s${RESET}  ${CRIMSON}║${RESET}\n" "$sys_info"
+    local sys_info="  Host: $(hostname) | OS: $os_str | Kernel: $(uname -r)"
+    printf "  ${CRIMSON}║${RESET}%-74s${CRIMSON}║${RESET}\n" "$sys_info"
     printf "  ${CRIMSON}╚══════════════════════════════════════════════════════════════════════════╝${RESET}\n"
     printf '\n'
 }
 
 _draw_menu() {
     printf "     ${CRIMSON}┌─────────────────────────────────────────────────────────┐${RESET}\n"
-    printf "     ${CRIMSON}│${RESET}   ${BOLD}${WHITE}CHASE OPERATIONS DASHBOARD${RESET}  ${CHARCOAL}│${RESET} Host Vulnerability Sentry  ${CRIMSON}│${RESET}\n"
+    printf "     ${CRIMSON}│${RESET}  ${BOLD}${WHITE}CHASE OPERATIONS DASHBOARD${RESET}  ${CHARCOAL}│${RESET} Host Vulnerability Sentry${CRIMSON}│${RESET}\n"
     printf "     ${CRIMSON}└─────────────────────────────────────────────────────────┘${RESET}\n"
     printf '\n'
     printf "     ${CHARCOAL}┌─────────────────────────────────────────────────────────┐${RESET}\n"
-    printf "     ${CHARCOAL}│${RESET}  ${_C1}[ 1 ]${RESET}  ${BOLD}${WHITE}Initiate Security Audit Scan${RESET}                  ${CHARCOAL}│${RESET}\n"
-    printf "     ${CHARCOAL}│${RESET}  ${_C2}[ 2 ]${RESET}  Select & Execute Specific Modules          ${CHARCOAL}│${RESET}\n"
-    printf "     ${CHARCOAL}│${RESET}  ${_C3}[ 3 ]${RESET}  List Loaded Audit Module Plugins           ${CHARCOAL}│${RESET}\n"
-    printf "     ${CHARCOAL}│${RESET}  ${_C4}[ 4 ]${RESET}  Review Active Configurations               ${CHARCOAL}│${RESET}\n"
-    printf "     ${CHARCOAL}│${RESET}  ${_C5}[ 5 ]${RESET}  Inspect Generated Audit Reports            ${CHARCOAL}│${RESET}\n"
-    printf "     ${CHARCOAL}│${RESET}  ${ASH}[ 6 ]${RESET}  Exit Operations Control                    ${CHARCOAL}│${RESET}\n"
+    printf "     ${CHARCOAL}│${RESET}  ${_C1}[ 1 ]${RESET}  ${BOLD}${WHITE}%-40s${RESET}        ${CHARCOAL}│${RESET}\n" "Initiate Security Audit Scan"
+    printf "     ${CHARCOAL}│${RESET}  ${_C2}[ 2 ]${RESET}  %-40s        ${CHARCOAL}│${RESET}\n" "Select & Execute Specific Modules"
+    printf "     ${CHARCOAL}│${RESET}  ${_C3}[ 3 ]${RESET}  %-40s        ${CHARCOAL}│${RESET}\n" "Inspect Generated Audit Reports"
+    printf "     ${CHARCOAL}│${RESET}  ${_C4}[ 4 ]${RESET}  %-40s        ${CHARCOAL}│${RESET}\n" "Review Active Configurations"
+    printf "     ${CHARCOAL}│${RESET}  ${_C5}[ 5 ]${RESET}  %-40s        ${CHARCOAL}│${RESET}\n" "List Loaded Audit Module Plugins"
+    printf "     ${CHARCOAL}│${RESET}  ${ASH}[ 6 ]${RESET}  %-40s        ${CHARCOAL}│${RESET}\n" "Exit Operations Control"
     printf "     ${CHARCOAL}└─────────────────────────────────────────────────────────┘${RESET}\n"
     printf '\n'
 }
@@ -119,11 +120,20 @@ print_banner() {
             1|"")
                 clear
                 log_info "Initiating full audit scan...\n"
-                break
+                OPT_MODULES=""
+                load_config
+                
+                execute_scan_flow || true
+                
+                printf "\n   ${ASH}Press Enter to return to menu...${RESET} "
+                read -r 2>/dev/null || true
+                clear
+                _draw_logo
                 ;;
             2)
                 clear
-                printf "   ${_C1}Available Modules to Audit:${RESET}\n\n"
+                printf "  ${BOLD}${WHITE}SELECT MODULES TO AUDIT${RESET}\n"
+                printf "  ${CHARCOAL}────────────────────────────────────────────────────────────────────────${RESET}\n"
                 local idx=0
                 declare -A _MOD_INDEX_MAP
                 for m_key in "${ALL_DISCOVERED_MODULES[@]}"; do
@@ -141,10 +151,10 @@ print_banner() {
                     local color_var="_C${mod_color_idx}"
                     local color_code="${!color_var}"
                     
-                    printf "     ${color_code}%s${RESET}  %-20s — %s\n" "$padded_idx" "$m_key" "$m_desc"
+                    printf "   ${color_code}%s${RESET}  %-22s — %s\n" "$padded_idx" "$m_key" "$m_desc"
                 done
-                printf '\n'
-                printf "   ${CRIMSON}»»»${RESET} Select modules to run ${_C1}[e.g. 01,03 or 1,2 or iam,network]${RESET}: "
+                printf "  ${CHARCOAL}────────────────────────────────────────────────────────────────────────${RESET}\n\n"
+                printf "  ${CRIMSON}»»»${RESET} Select modules to run ${_C1}[e.g. 01,03 or 1,2 or iam,network]${RESET}: "
                 local mod_input
                 read -r mod_input 2>/dev/null || mod_input="01"
                 printf '\n'
@@ -165,51 +175,20 @@ print_banner() {
                 OPT_MODULES=$(IFS=,; echo "${normalized_list[*]}")
                 clear
                 log_info "Initiating target module(s) scan: ${OPT_MODULES}\n"
-                break
+                load_config
+                
+                execute_scan_flow || true
+                
+                printf "\n   ${ASH}Press Enter to return to menu...${RESET} "
+                read -r 2>/dev/null || true
+                clear
+                _draw_logo
                 ;;
             3)
                 clear
-                printf "   ${BOLD}${WHITE}CHASE System Modules${RESET}\n"
-                printf "   ${CHARCOAL}─────────────────────────────────────────────────────${RESET}\n\n"
-                local idx=0
-                for m_key in "${ALL_DISCOVERED_MODULES[@]}"; do
-                    idx=$(( idx + 1 ))
-                    local m_name="${MOD_NAME_MAP[$m_key]:-$m_key}"
-                    
-                    local mod_color_idx=$(( (idx - 1) % 5 + 1 ))
-                    local color_var="_C${mod_color_idx}"
-                    local color_code="${!color_var}"
-                    
-                    printf "   ${color_code}%-25s${RESET}  %s\n" "${m_key}.sh" "$m_name"
-                done
-                printf '\n'
-                printf "   ${ASH}Press Enter to return to menu...${RESET} "
-                read -r 2>/dev/null || true
-                clear
-                _draw_logo
-                ;;
-            4)
-                clear
-                printf "   ${BOLD}${WHITE}Configuration System${RESET} ${DIM}(config/chase.conf)${RESET}\n"
-                printf "   ${CHARCOAL}─────────────────────────────────────────────────────${RESET}\n\n"
-                printf "   ${_C1}REPORT_DIR${RESET}                 — where HTML/JSON reports are saved\n"
-                printf "   ${_C2}MODULES${RESET}                    — which modules run by default\n"
-                printf "   ${_C3}EXCLUDE_DIRS${RESET}               — paths skipped during filesystem scans\n"
-                printf "   ${_C4}CERT_WARN_DAYS / CRIT${RESET}      — thresholds for SSL cert warning alerts\n"
-                printf "   ${_C5}SYSLOG_ENABLED${RESET}             — set to 1 to forward findings to syslog\n"
-                printf "   ${_C1}BENCHMARK${RESET}                  — filter checks by level (cis_level1/2)\n"
-                printf "   ${_C2}SUID_BASELINE_MAX_AGE_DAYS${RESET} — age warning threshold for SUID whitelist\n"
-                printf '\n'
-                printf "   ${ASH}Press Enter to return to menu...${RESET} "
-                read -r 2>/dev/null || true
-                clear
-                _draw_logo
-                ;;
-            5)
-                clear
                 local rdir="${REPORT_DIR:-/var/log/chase}"
-                printf "   ${BOLD}${WHITE}Recent Reports${RESET} ${DIM}(${rdir})${RESET}\n"
-                printf "   ${CHARCOAL}─────────────────────────────────────────────────────${RESET}\n\n"
+                printf "  ${BOLD}${WHITE}RECENT AUDIT REPORTS${RESET}  ${DIM}(${rdir})${RESET}\n"
+                printf "  ${CHARCOAL}────────────────────────────────────────────────────────────────────────${RESET}\n"
                 if [[ -d "$rdir" ]]; then
                     local reports
                     reports="$(ls -t "${rdir}"/chase_report_*.html 2>/dev/null | head -10)"
@@ -223,8 +202,46 @@ print_banner() {
                 else
                     printf "   ${ASH}Report directory not found: ${rdir}${RESET}\n"
                 fi
-                printf '\n'
-                printf "   ${ASH}Press Enter to return to menu...${RESET} "
+                printf "  ${CHARCOAL}────────────────────────────────────────────────────────────────────────${RESET}\n\n"
+                printf "  ${ASH}Press Enter to return to menu...${RESET} "
+                read -r 2>/dev/null || true
+                clear
+                _draw_logo
+                ;;
+            4)
+                clear
+                printf "  ${BOLD}${WHITE}CHASE SYSTEM CONFIGURATIONS${RESET}  ${DIM}(config/chase.conf)${RESET}\n"
+                printf "  ${CHARCOAL}────────────────────────────────────────────────────────────────────────${RESET}\n"
+                printf "   ${_C1}REPORT_DIR${RESET}                 — where HTML/JSON reports are saved\n"
+                printf "   ${_C2}MODULES${RESET}                    — which modules run by default\n"
+                printf "   ${_C3}EXCLUDE_DIRS${RESET}               — paths skipped during filesystem scans\n"
+                printf "   ${_C4}CERT_WARN_DAYS / CRIT${RESET}      — thresholds for SSL cert warning alerts\n"
+                printf "   ${_C5}SYSLOG_ENABLED${RESET}             — set to 1 to forward findings to syslog\n"
+                printf "   ${_C1}BENCHMARK${RESET}                  — filter checks by level (cis_level1/2)\n"
+                printf "   ${_C2}SUID_BASELINE_MAX_AGE_DAYS${RESET} — age warning threshold for SUID whitelist\n"
+                printf "  ${CHARCOAL}────────────────────────────────────────────────────────────────────────${RESET}\n\n"
+                printf "  ${ASH}Press Enter to return to menu...${RESET} "
+                read -r 2>/dev/null || true
+                clear
+                _draw_logo
+                ;;
+            5)
+                clear
+                printf "  ${BOLD}${WHITE}LOADED SECURITY AUDIT MODULES${RESET}\n"
+                printf "  ${CHARCOAL}────────────────────────────────────────────────────────────────────────${RESET}\n"
+                local idx=0
+                for m_key in "${ALL_DISCOVERED_MODULES[@]}"; do
+                    idx=$(( idx + 1 ))
+                    local m_name="${MOD_NAME_MAP[$m_key]:-$m_key}"
+                    
+                    local mod_color_idx=$(( (idx - 1) % 5 + 1 ))
+                    local color_var="_C${mod_color_idx}"
+                    local color_code="${!color_var}"
+                    
+                    printf "   ${color_code}▶${RESET}  %-25s %s\n" "${m_key}.sh" "${m_name}"
+                done
+                printf "  ${CHARCOAL}────────────────────────────────────────────────────────────────────────${RESET}\n\n"
+                printf "  ${ASH}Press Enter to return to menu...${RESET} "
                 read -r 2>/dev/null || true
                 clear
                 _draw_logo
@@ -341,7 +358,7 @@ draw_live_status() {
     [[ "${CHASE_LIVE_TUI:-0}" -eq 1 ]] || return 0
 
     local num_mods=${#MODULES[@]}
-    local lines_to_clear=$(( num_mods + 6 ))
+    local lines_to_clear=$(( num_mods + 4 ))
 
     if [[ "${LIVE_STATUS_DRAWN:-0}" -eq 1 ]]; then
         # Move cursor up and clear lines
@@ -354,65 +371,79 @@ draw_live_status() {
 
     local n_crit=0 n_high=0 n_med=0 n_low=0
     if [[ -n "${TMP_FINDINGS_FILE:-}" && -f "$TMP_FINDINGS_FILE" ]]; then
-        n_crit="$(grep -c '^CRITICAL' "$TMP_FINDINGS_FILE" 2>/dev/null || echo 0)"
-        n_high="$(grep -c '^HIGH'     "$TMP_FINDINGS_FILE" 2>/dev/null || echo 0)"
-        n_med="$( grep -c '^MEDIUM'   "$TMP_FINDINGS_FILE" 2>/dev/null || echo 0)"
-        n_low="$( grep -c '^LOW'      "$TMP_FINDINGS_FILE" 2>/dev/null || echo 0)"
+        n_crit="$(grep -c '^CRITICAL' "$TMP_FINDINGS_FILE" 2>/dev/null)" || n_crit=0
+        n_high="$(grep -c '^HIGH'     "$TMP_FINDINGS_FILE" 2>/dev/null)" || n_high=0
+        n_med="$( grep -c '^MEDIUM'   "$TMP_FINDINGS_FILE" 2>/dev/null)" || n_med=0
+        n_low="$( grep -c '^LOW'      "$TMP_FINDINGS_FILE" 2>/dev/null)" || n_low=0
     fi
 
-    # Draw the top border
-    printf "  ${CRIMSON}┌────────────────────────────────────────────────────────┐${RESET}\n"
-    printf "  ${CRIMSON}│${RESET}  ${BOLD}${WHITE}CHASE LIVE SCANNING STATUS${RESET}                           ${CRIMSON}│${RESET}\n"
-    printf "  ${CRIMSON}├────────────────────────────────────────────────────────┤${RESET}\n"
+    local completed=0
+    local idx=0
+    for mod in "${MODULES[@]}"; do
+        local status="${CHASE_MOD_STATUS[$mod]:-PENDING}"
+        if [[ "$status" == "PASSED" || "$status" == "FINDINGS" ]]; then
+            completed=$(( completed + 1 ))
+        fi
+    done
+
+    # Progress Bar math
+    local percent=$(( (completed * 100) / num_mods ))
+    local bar_len=$(( (completed * 30) / num_mods ))
+
+    printf "  ${BOLD}${WHITE}CHASE SECURITY AUDIT ENGINE${RESET}  ${CHARCOAL}•${RESET}  ${ASH}Live Execution${RESET}\n"
+    printf "  ${CHARCOAL}────────────────────────────────────────────────────────────────────────${RESET}\n"
 
     # Draw each module line
-    local idx=0
+    idx=0
     for mod in "${MODULES[@]}"; do
         idx=$(( idx + 1 ))
         local friendly_name="${MOD_NAME_MAP[$mod]:-$mod}"
-        local disp_name="${friendly_name:0:30}"
+        local disp_name="${friendly_name:0:35}"
         
         local status="${CHASE_MOD_STATUS[$mod]:-PENDING}"
-        local raw_status_str=""
-        local color_prefix=""
+        local status_icon=""
+        local status_text=""
         case "$status" in
-            PENDING)  raw_status_str="PENDING";   color_prefix="$ASH" ;;
-            RUNNING)  raw_status_str="RUNNING…";  color_prefix="$YELLOW" ;;
-            PASSED)   raw_status_str="PASSED";    color_prefix="$GREEN" ;;
+            PENDING)
+                status_icon="${ASH}○${RESET}"
+                status_text="${ASH}Pending${RESET}"
+                ;;
+            RUNNING)
+                status_icon="${YELLOW}▶${RESET}"
+                status_text="${YELLOW}Scanning...${RESET}"
+                ;;
+            PASSED)
+                status_icon="${GREEN}✔${RESET}"
+                status_text="${GREEN}Clean${RESET}"
+                ;;
             FINDINGS) 
                 local f_count=${CHASE_MOD_FINDINGS[$mod]:-0}
+                status_icon="${RED}▲${RESET}"
                 if [[ "$f_count" -eq 1 ]]; then
-                    raw_status_str="1 FINDING"
+                    status_text="${CRIMSON}1 Finding${RESET}"
                 else
-                    raw_status_str="${f_count} FINDINGS"
+                    status_text="${CRIMSON}${f_count} Findings${RESET}"
                 fi
-                color_prefix="$CRIMSON"
                 ;;
         esac
-        
-        local padded_status
-        padded_status="$(printf '%-12s' "$raw_status_str")"
-        local status_str="${color_prefix}[ ${padded_status} ]${RESET}"
 
-        printf "  ${CRIMSON}│${RESET}  [%d/%d] %-30s  %-21s  ${CRIMSON}│${RESET}\n" \
-            "$idx" "$num_mods" "$disp_name" "$status_str"
+        printf "  %s  %-40s %s\n" "$status_icon" "$disp_name" "$status_text"
     done
 
-    # Draw the scoreboard divider and findings count
-    printf "  ${CRIMSON}├────────────────────────────────────────────────────────┤${RESET}\n"
-    
-    local summary_str
-    summary_str="$(printf 'FINDINGS: CRIT:%d | HIGH:%d | MED:%d | LOW:%d' "$n_crit" "$n_high" "$n_med" "$n_low")"
-    local len=${#summary_str}
-    local spaces_to_add=$(( 52 - len ))
-    local spaces=""
-    if (( spaces_to_add > 0 )); then
-        spaces="$(printf '%*s' "$spaces_to_add" '')"
-    fi
+    printf "  ${CHARCOAL}────────────────────────────────────────────────────────────────────────${RESET}\n"
 
-    printf "  ${CRIMSON}│${RESET}  ${BOLD}FINDINGS:${RESET} ${RED}CRIT:%d${RESET} | ${ORANGE}HIGH:%d${RESET} | ${YELLOW}MED:%d${RESET} | ${ASH}LOW:%d${RESET}%s  ${CRIMSON}│${RESET}\n" \
-        "$n_crit" "$n_high" "$n_med" "$n_low" "$spaces"
-    printf "  ${CRIMSON}└────────────────────────────────────────────────────────┘${RESET}\n"
+    # Draw progress bar
+    local bar=""
+    local i
+    for (( i=0; i<30; i++ )); do
+        if (( i < bar_len )); then
+            bar="${bar}${CRIMSON}█${RESET}"
+        else
+            bar="${bar}${CHARCOAL}░${RESET}"
+        fi
+    done
+    printf "  Progress: [ %s ] %d%% | Findings: ${RED}CRIT:%d${RESET} ${ORANGE}HIGH:%d${RESET} ${YELLOW}MED:%d${RESET} ${ASH}LOW:%d${RESET}\n" \
+        "$bar" "$percent" "$n_crit" "$n_high" "$n_med" "$n_low"
 }
 
 # =============================================================================
@@ -426,10 +457,9 @@ run_remediation_wizard() {
 
     clear
     printf "\n"
-    printf "  ${CRIMSON}╔══════════════════════════════════════════════════════════════════════════╗${RESET}\n"
-    printf "  ${CRIMSON}║${RESET}   ${BOLD}${WHITE}CHASE INTERACTIVE REMEDIATION WIZARD${RESET}                             ${CRIMSON}║${RESET}\n"
-    printf "  ${CRIMSON}║${RESET}   ${ASH}Review each security finding and choose whether to apply the fix. ${RESET}   ${CRIMSON}║${RESET}\n"
-    printf "  ${CRIMSON}╚══════════════════════════════════════════════════════════════════════════╝${RESET}\n"
+    printf "  ${BOLD}${WHITE}CHASE INTERACTIVE REMEDIATION WIZARD${RESET}\n"
+    printf "  ${ASH}Review each security finding and choose whether to apply the fix.${RESET}\n"
+    printf "  ${CHARCOAL}────────────────────────────────────────────────────────────────────────${RESET}\n"
     printf "\n"
 
     local count=0
@@ -453,7 +483,7 @@ run_remediation_wizard() {
             LOW)      sev_color="$ASH" ;;
         esac
 
-        printf "  ${CHARCOAL}──────────────────────────────────────────────────────────────────────────${RESET}\n"
+        printf "  ${CHARCOAL}────────────────────────────────────────────────────────────────────────${RESET}\n"
         printf "  ${BOLD}Finding #%d:${RESET} [%s%s${RESET}] [%s%s${RESET}] %s\n" \
             "$count" "$sev_color" "$severity" "$CYAN" "$domain" "$title"
         if [[ -n "$benchmark" && "$benchmark" != "N/A" ]]; then
@@ -461,7 +491,7 @@ run_remediation_wizard() {
         fi
         printf "  ${BOLD}Remediation Command:${RESET}\n"
         printf "    ${CYAN}%s${RESET}\n" "$remediation"
-        printf "  ${CHARCOAL}──────────────────────────────────────────────────────────────────────────${RESET}\n"
+        printf "  ${CHARCOAL}────────────────────────────────────────────────────────────────────────${RESET}\n"
 
         while true; do
             printf "  ${CRIMSON}»»»${RESET} Apply this fix? [y/N/q]: "
@@ -499,11 +529,11 @@ run_remediation_wizard() {
         printf "\n"
     done < "$TMP_FINDINGS_FILE"
 
-    printf "  ${CHARCOAL}──────────────────────────────────────────────────────────────────────────${RESET}\n"
+    printf "  ${CHARCOAL}────────────────────────────────────────────────────────────────────────${RESET}\n"
     printf "  ${BOLD}Remediation Wizard Completed!${RESET}\n"
-    printf "  Total evaluated   : %d\n" "$count"
-    printf "  Applied successfully: ${GREEN}%d${RESET}\n" "$applied"
-    printf "  Failed to apply   : ${RED}%d${RESET}\n" "$failed"
-    printf "  Skipped           : %s%d${RESET}\n" "$ASH" "$skipped"
-    printf "  ${CHARCOAL}──────────────────────────────────────────────────────────────────────────${RESET}\n\n"
+    printf "  Total evaluated       : %d\n" "$count"
+    printf "  Applied successfully  : ${GREEN}%d${RESET}\n" "$applied"
+    printf "  Failed to apply       : ${RED}%d${RESET}\n" "$failed"
+    printf "  Skipped               : %s%d${RESET}\n" "$ASH" "$skipped"
+    printf "  ${CHARCOAL}────────────────────────────────────────────────────────────────────────${RESET}\n\n"
 }

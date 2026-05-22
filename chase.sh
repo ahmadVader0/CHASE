@@ -211,22 +211,14 @@ compute_exit_code() {
     fi
 }
 
-# =============================================================================
-#  MAIN
-# =============================================================================
-main() {
-    parse_args "$@"
+# --- Reset temporary scan files ----------------------------------------------
+reset_scan_state() {
+    [[ -n "${TMP_FINDINGS_FILE:-}" && -f "$TMP_FINDINGS_FILE" ]] && rm -f "$TMP_FINDINGS_FILE"
+    [[ -f "${LOCKFILE:-}" ]] && rm -f "$LOCKFILE"
+}
 
-    source_core
-    
-    # Run module auto-discovery first
-    discover_modules
-    
-    print_banner
-    load_config
-
-    [[ "$OPT_NO_COLOUR" -eq 1 ]] && NO_COLOUR=1
-
+# --- Execute the scanning and remediation flow -------------------------------
+execute_scan_flow() {
     # Run preflight — exits with code EXIT_ERROR on failure
     run_preflight
 
@@ -236,9 +228,6 @@ main() {
         || TMP_FINDINGS_FILE="$(mktemp /tmp/chase_findings.XXXXXX)"
     chmod 600 "$TMP_FINDINGS_FILE"
     export TMP_FINDINGS_FILE
-
-    # Register cleanup for normal exit, Ctrl-C, and kill
-    trap 'cleanup' EXIT INT TERM
 
     run_modules
 
@@ -273,9 +262,41 @@ main() {
         run_remediation_wizard
     fi
 
-    # Return exit code based on findings
-    compute_exit_code
-    exit $?
+    # Save exit code before cleanup
+    local exit_code
+    compute_exit_code && exit_code=$? || exit_code=$?
+
+    # Clean up files for this scan
+    reset_scan_state
+
+    return "$exit_code"
+}
+
+# =============================================================================
+#  MAIN
+# =============================================================================
+main() {
+    parse_args "$@"
+
+    source_core
+    
+    # Run module auto-discovery first
+    discover_modules
+    
+    load_config
+
+    [[ "$OPT_NO_COLOUR" -eq 1 ]] && NO_COLOUR=1
+
+    # Register cleanup for normal exit, Ctrl-C, and kill
+    trap 'cleanup' EXIT INT TERM
+
+    # If interactive and no command line arguments were passed, show the menu loop
+    if [[ $# -eq 0 && -t 0 && -t 1 ]]; then
+        print_banner
+    else
+        execute_scan_flow
+        exit $?
+    fi
 }
 
 main "$@"

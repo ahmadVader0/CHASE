@@ -217,7 +217,7 @@ check_firewall_state() {
 
     if [[ "$fw_active" -eq 0 ]] && command -v iptables &>/dev/null; then
         local rule_count
-        rule_count="$(iptables -L INPUT --line-numbers 2>/dev/null | grep -vc '^num\|^Chain\|^target\|^$' || echo 0)"
+        rule_count="$(iptables -L INPUT --line-numbers 2>/dev/null | grep -vc '^num\|^Chain\|^target\|^$')" || rule_count=0
         if [[ "$rule_count" -gt 0 ]]; then
             fw_active=1
             log_ok "  Firewall: iptables has ${rule_count} INPUT rules"

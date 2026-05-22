@@ -46,7 +46,7 @@ check_pending_updates() {
     if command -v apt-get &>/dev/null; then
         local apt_output count
         apt_output="$(apt-get -s upgrade 2>/dev/null || true)"
-        count="$(echo "$apt_output" | grep -c '^Inst' || echo 0)"
+        count="$(echo "$apt_output" | grep -c '^Inst')" || count=0
         if [[ "$count" -gt 0 ]]; then
             register_finding "HIGH" "SOFTWARE" \
                 "${count} pending package update(s) — may include security fixes" \
@@ -60,7 +60,7 @@ check_pending_updates() {
     if command -v dnf &>/dev/null; then
         local dnf_output count
         dnf_output="$(dnf check-update --security -q 2>/dev/null || true)"
-        count="$(echo "$dnf_output" | grep -vc '^$' || echo 0)"
+        count="$(echo "$dnf_output" | grep -vc '^$')" || count=0
         if [[ "$count" -gt 0 ]]; then
             register_finding "HIGH" "SOFTWARE" \
                 "${count} pending security update(s) (dnf)" \
@@ -74,7 +74,7 @@ check_pending_updates() {
     if command -v yum &>/dev/null; then
         local yum_output count
         yum_output="$(yum check-update --security -q 2>/dev/null || true)"
-        count="$(echo "$yum_output" | grep -vc '^$' || echo 0)"
+        count="$(echo "$yum_output" | grep -vc '^$')" || count=0
         if [[ "$count" -gt 0 ]]; then
             register_finding "HIGH" "SOFTWARE" \
                 "${count} pending security update(s) (yum)" \
@@ -88,7 +88,7 @@ check_pending_updates() {
     if command -v apk &>/dev/null; then
         local apk_output count
         apk_output="$(apk upgrade --simulate 2>/dev/null || true)"
-        count="$(echo "$apk_output" | grep -c 'Upgrading' || echo 0)"
+        count="$(echo "$apk_output" | grep -c 'Upgrading')" || count=0
         if [[ "$count" -gt 0 ]]; then
             register_finding "HIGH" "SOFTWARE" \
                 "${count} pending update(s) (apk)" \
@@ -126,7 +126,7 @@ check_auditd() {
 
     if command -v auditctl &>/dev/null; then
         local rule_count
-        rule_count="$(auditctl -l 2>/dev/null | grep -vc '^No\|^$' || echo 0)"
+        rule_count="$(auditctl -l 2>/dev/null | grep -vc '^No\|^$')" || rule_count=0
         if [[ "$rule_count" -eq 0 ]]; then
             register_finding "MEDIUM" "SOFTWARE" \
                 "auditd is running but has no audit rules configured" \
@@ -187,8 +187,8 @@ check_selinux_apparmor() {
 
     if command -v aa-status &>/dev/null; then
         local complain_count enforce_count
-        complain_count="$(aa-status 2>/dev/null | grep -c 'profiles are in complain' || echo 0)"
-        enforce_count="$(aa-status  2>/dev/null | grep -c 'profiles are in enforce'  || echo 0)"
+        complain_count="$(aa-status 2>/dev/null | grep -c 'profiles are in complain')" || complain_count=0
+        enforce_count="$(aa-status  2>/dev/null | grep -c 'profiles are in enforce')" || enforce_count=0
 
         if [[ "$enforce_count" -gt 0 ]]; then
             log_ok "  AppArmor: ${enforce_count} enforcing profile(s)"

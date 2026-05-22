@@ -70,10 +70,10 @@ generate_html_report() {
     timestamp="$(date '+%Y-%m-%d %H:%M:%S')"
 
     local n_crit n_high n_med n_low
-    n_crit="$(grep -c '^CRITICAL' "$TMP_FINDINGS_FILE" 2>/dev/null || echo 0)"
-    n_high="$(grep -c '^HIGH'     "$TMP_FINDINGS_FILE" 2>/dev/null || echo 0)"
-    n_med="$( grep -c '^MEDIUM'   "$TMP_FINDINGS_FILE" 2>/dev/null || echo 0)"
-    n_low="$( grep -c '^LOW'      "$TMP_FINDINGS_FILE" 2>/dev/null || echo 0)"
+    n_crit="$(grep -c '^CRITICAL' "$TMP_FINDINGS_FILE" 2>/dev/null)" || n_crit=0
+    n_high="$(grep -c '^HIGH'     "$TMP_FINDINGS_FILE" 2>/dev/null)" || n_high=0
+    n_med="$( grep -c '^MEDIUM'   "$TMP_FINDINGS_FILE" 2>/dev/null)" || n_med=0
+    n_low="$( grep -c '^LOW'      "$TMP_FINDINGS_FILE" 2>/dev/null)" || n_low=0
 
     # Hardening Score calculation
     local score=100
@@ -416,25 +416,57 @@ print_summary() {
     local report_base="$1"
 
     local n_crit n_high n_med n_low total
-    n_crit="$(grep -c '^CRITICAL' "$TMP_FINDINGS_FILE" 2>/dev/null || echo 0)"
-    n_high="$(grep -c '^HIGH'     "$TMP_FINDINGS_FILE" 2>/dev/null || echo 0)"
-    n_med="$( grep -c '^MEDIUM'   "$TMP_FINDINGS_FILE" 2>/dev/null || echo 0)"
-    n_low="$( grep -c '^LOW'      "$TMP_FINDINGS_FILE" 2>/dev/null || echo 0)"
+    n_crit="$(grep -c '^CRITICAL' "$TMP_FINDINGS_FILE" 2>/dev/null)" || n_crit=0
+    n_high="$(grep -c '^HIGH'     "$TMP_FINDINGS_FILE" 2>/dev/null)" || n_high=0
+    n_med="$( grep -c '^MEDIUM'   "$TMP_FINDINGS_FILE" 2>/dev/null)" || n_med=0
+    n_low="$( grep -c '^LOW'      "$TMP_FINDINGS_FILE" 2>/dev/null)" || n_low=0
     total=$(( n_crit + n_high + n_med + n_low ))
 
+    # Calculate hardening score
+    local score=100
+    local crit_deduction=$(( n_crit * 15 ))
+    local high_deduction=$(( n_high * 10 ))
+    local med_deduction=$(( n_med * 5 ))
+    local low_deduction=$(( n_low * 2 ))
+    local total_deduction=$(( crit_deduction + high_deduction + med_deduction + low_deduction ))
+    score=$(( score - total_deduction ))
+    if (( score < 10 )); then
+        score=10
+    fi
+
+    # Draw hardening score posture bar
+    local score_bar_len=$(( score * 30 / 100 ))
+    local score_bar=""
+    local score_color="$GREEN"
+    if (( score < 60 )); then
+        score_color="$RED"
+    elif (( score < 85 )); then
+        score_color="$ORANGE"
+    fi
+
+    local i
+    for (( i=0; i<30; i++ )); do
+        if (( i < score_bar_len )); then
+            score_bar="${score_bar}${score_color}█${RESET}"
+        else
+            score_bar="${score_bar}${CHARCOAL}░${RESET}"
+        fi
+    done
+
     echo ""
-    echo "${CHARCOAL}===========================================================================${RESET}"
-    printf  "${BOLD}%*s📊  CHASE AUDIT REPORT SUMMARY%*s${RESET}\n" 17 '' 17 ''
-    echo "${CHARCOAL}===========================================================================${RESET}"
+    printf "  ${BOLD}${WHITE}CHASE AUDIT REPORT SUMMARY${RESET}\n"
+    printf "  ${CHARCOAL}────────────────────────────────────────────────────────────────────────${RESET}\n"
+    printf "  Hardening Posture: [ %s ] %s%d%%%s\n" "$score_bar" "$score_color" "$score" "$RESET"
+    printf "  ${CHARCOAL}────────────────────────────────────────────────────────────────────────${RESET}\n"
     printf "  ${RED}${BOLD}[!] CRITICAL${RESET} : %d\n"  "$n_crit"
     printf "  ${ORANGE}[-] HIGH${RESET}     : %d\n"  "$n_high"
     printf "  ${YELLOW}[i] MEDIUM${RESET}   : %d\n"  "$n_med"
     printf "  ${ASH}[v] LOW${RESET}      : %d\n"  "$n_low"
-    printf "       ${CHARCOAL}─────────────────${RESET}\n"
-    printf "       Total        : %d\n"  "$total"
-    echo "${CHARCOAL}===========================================================================${RESET}"
-    printf "  HTML Report : %s.html\n" "$report_base"
-    printf "  JSON Report : %s.json\n" "$report_base"
-    echo "${CHARCOAL}===========================================================================${RESET}"
+    printf "  ${CHARCOAL}────────────────────────────────────────────────────────────────────────${RESET}\n"
+    printf "  Total Security Findings : ${BOLD}%d${RESET}\n" "$total"
+    printf "  ${CHARCOAL}────────────────────────────────────────────────────────────────────────${RESET}\n"
+    printf "  HTML SOC Dashboard : ${CYAN}%s.html${RESET}\n" "$report_base"
+    printf "  JSON Data Report   : ${CYAN}%s.json${RESET}\n" "$report_base"
+    printf "  ${CHARCOAL}────────────────────────────────────────────────────────────────────────${RESET}\n"
     echo ""
 }
