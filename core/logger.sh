@@ -66,22 +66,19 @@ show_spinner() {
 # =============================================================================
 _draw_logo() {
     printf '\n'
-    printf "  ${CRIMSON}╔══════════════════════════════════════════════════════════════════════════╗${RESET}\n"
-    printf "  ${CRIMSON}║${RESET}   ${_C1}██████╗${RESET}██╗  ██╗ ${_C2}█████╗${RESET} ${_C3}███████╗${RESET}${_C4}███████╗${RESET}                                ${CRIMSON}║${RESET}\n"
-    printf "  ${CRIMSON}║${RESET}  ${_C1}██╔════╝${RESET}██║  ██║${_C2}██╔══██╗${RESET}${_C3}██╔════╝${RESET}${_C4}██╔════╝${RESET}                                ${CRIMSON}║${RESET}\n"
-    printf "  ${CRIMSON}║${RESET}  ${_C1}██║     ${RESET}███████║${_C2}███████║${RESET}${_C3}███████╗${RESET}${_C4}█████╗${RESET}                                  ${CRIMSON}║${RESET}\n"
-    printf "  ${CRIMSON}║${RESET}  ${_C1}██║     ${RESET}██╔══██║${_C2}██╔══██║${RESET}${_C3}╚════██║${RESET}${_C4}██╔══╝${RESET}                                  ${CRIMSON}║${RESET}\n"
-    printf "  ${CRIMSON}║${RESET}  ${_C1}╚██████╗${RESET}██║  ██║${_C2}██║  ██║${RESET}${_C3}███████║${RESET}${_C4}███████╗${RESET}                                ${CRIMSON}║${RESET}\n"
-    printf "  ${CRIMSON}║${RESET}   ${_C1}╚═════╝${RESET}╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚══════╝                                ${CRIMSON}║${RESET}\n"
-    printf "  ${CRIMSON}║${RESET}                                                                          ${CRIMSON}║${RESET}\n"
+    printf "  ${_C1}██████■${RESET}  ${_C2}██▪▪▪██${RESET}  ${_C3}■█████■${RESET}  ${_C4}■█████■${RESET}  ${_C5}███████${RESET}\n"
+    printf "  ${_C1}██▪▪▪▪▪${RESET}  ${_C2}██▪▪▪██${RESET}  ${_C3}██▪▪▪██${RESET}  ${_C4}██▪▪▪▪▪${RESET}  ${_C5}██▪▪▪▪▪${RESET}\n"
+    printf "  ${_C1}██▪▪▪▪▪${RESET}  ${_C2}███████${RESET}  ${_C3}███████${RESET}  ${_C4}■█████■${RESET}  ${_C5}█████■▪${RESET}\n"
+    printf "  ${_C1}██▪▪▪▪▪${RESET}  ${_C2}██▪▪▪██${RESET}  ${_C3}██▪▪▪██${RESET}  ${_C4}▄▄▄▄▄██${RESET}  ${_C5}██▪▪▪▪▪${RESET}\n"
+    printf "  ${_C1}██████■${RESET}  ${_C2}██▪▪▪██${RESET}  ${_C3}██▪▪▪██${RESET}  ${_C4}■█████■${RESET}  ${_C5}███████${RESET}\n"
+    printf '\n'
     
     local banner_text="  CHASE — Configuration & Host Audit Security Evaluator v${CHASE_VERSION}"
-    printf "  ${CRIMSON}║${RESET}%-74s${CRIMSON}║${RESET}\n" "$banner_text"
+    printf "%s\n" "$banner_text"
     
     local os_str="${CHASE_OS_NAME:-Linux} ${CHASE_OS_VERSION:-}"
     local sys_info="  Host: $(hostname) | OS: $os_str | Kernel: $(uname -r)"
-    printf "  ${CRIMSON}║${RESET}%-74s${CRIMSON}║${RESET}\n" "$sys_info"
-    printf "  ${CRIMSON}╚══════════════════════════════════════════════════════════════════════════╝${RESET}\n"
+    printf "%s\n" "$sys_info"
     printf '\n'
 }
 
